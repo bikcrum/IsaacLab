@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.40.12 (2025-06-30)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added :attr:`omni.isaac.lab.sensors.ContactSensorData.force_matrix_w_history` that tracks the history of the filtered contact forces in the world frame.
+
+
 0.40.11 (2025-06-27)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -37,6 +46,20 @@ Added
 0.40.8 (2025-06-18)
 ~~~~~~~~~~~~~~~~~~~
 
+Added
+^^^^^
+
+* Added :attr:`omni.isaac.lab.sensors.ContactSensorData.force_matrix_w_history` that tracks the history of the filtered contact forces in the world frame.
+
+
+0.40.11 (2025-06-27)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added unit test for :func:`~isaaclab.utils.math.quat_inv`.
+
 Fixed
 ^^^^^
 
@@ -62,6 +85,30 @@ Changed
 
 0.40.6 (2025-06-12)
 ~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added ``sample_bias_per_component`` flag to :class:`~isaaclab.utils.noise.noise_model.NoiseModelWithAdditiveBias` to enable independent per-component bias
+  sampling, which is now the default behavior. If set to False, the previous behavior of sharing the same bias value across all components is retained.
+
+
+0.40.8 (2025-06-18)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added :attr:`omni.isaac.lab.sensors.ContactSensorData.force_matrix_w_history` that tracks the history of the filtered contact forces in the world frame.
+
+
+0.40.11 (2025-06-27)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added unit test for :func:`~isaaclab.utils.math.quat_inv`.
 
 Fixed
 ^^^^^
