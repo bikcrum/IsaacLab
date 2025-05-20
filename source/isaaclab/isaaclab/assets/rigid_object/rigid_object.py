@@ -103,6 +103,7 @@ class RigidObject(AssetBase):
         # reset external wrench
         self._external_force_b[env_ids] = 0.0
         self._external_torque_b[env_ids] = 0.0
+        self._external_force_torque_positions[env_ids] = 0.0
 
     def write_data_to_sim(self):
         """Write external wrench to the simulation.
@@ -116,7 +117,7 @@ class RigidObject(AssetBase):
             self.root_physx_view.apply_forces_and_torques_at_position(
                 force_data=self._external_force_b.view(-1, 3),
                 torque_data=self._external_torque_b.view(-1, 3),
-                position_data=None,
+                position_data=self._external_force_torque_positions.view(-1, 3),
                 indices=self._ALL_INDICES,
                 is_global=False,
             )
@@ -346,6 +347,7 @@ class RigidObject(AssetBase):
         self,
         forces: torch.Tensor,
         torques: torch.Tensor,
+        positions: torch.Tensor | None = None,
         body_ids: Sequence[int] | slice | None = None,
         env_ids: Sequence[int] | None = None,
     ):
@@ -372,6 +374,8 @@ class RigidObject(AssetBase):
         Args:
             forces: External forces in bodies' local frame. Shape is (len(env_ids), len(body_ids), 3).
             torques: External torques in bodies' local frame. Shape is (len(env_ids), len(body_ids), 3).
+            positions: External force and torque application positions in bodies' local frame.
+                Shape is (len(env_ids), len(body_ids), 3). Defaults to None (origin of the body).
             body_ids: Body indices to apply external wrench to. Defaults to None (all bodies).
             env_ids: Environment indices to apply external wrench to. Defaults to None (all instances).
         """
@@ -395,6 +399,8 @@ class RigidObject(AssetBase):
         # set into internal buffers
         self._external_force_b[env_ids, body_ids] = forces
         self._external_torque_b[env_ids, body_ids] = torques
+        if positions is not None:
+            self._external_force_torque_positions[env_ids, body_ids] = positions
 
     """
     Internal helper.
@@ -472,6 +478,7 @@ class RigidObject(AssetBase):
         self.has_external_wrench = False
         self._external_force_b = torch.zeros((self.num_instances, self.num_bodies, 3), device=self.device)
         self._external_torque_b = torch.zeros_like(self._external_force_b)
+        self._external_force_torque_positions = torch.zeros_like(self._external_force_b)
 
         # set information about rigid body into data
         self._data.body_names = self.body_names

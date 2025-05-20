@@ -169,6 +169,7 @@ class Articulation(AssetBase):
         # reset external wrench
         self._external_force_b[env_ids] = 0.0
         self._external_torque_b[env_ids] = 0.0
+        self._external_force_torque_positions[env_ids] = 0.0
 
     def write_data_to_sim(self):
         """Write external wrenches and joint commands to the simulation.
@@ -185,7 +186,7 @@ class Articulation(AssetBase):
             self.root_physx_view.apply_forces_and_torques_at_position(
                 force_data=self._external_force_b.view(-1, 3),
                 torque_data=self._external_torque_b.view(-1, 3),
-                position_data=None,
+                position_data=self._external_force_torque_positions.view(-1, 3),
                 indices=self._ALL_INDICES,
                 is_global=False,
             )
@@ -821,6 +822,7 @@ class Articulation(AssetBase):
         self,
         forces: torch.Tensor,
         torques: torch.Tensor,
+        positions: torch.Tensor | None = None,
         body_ids: Sequence[int] | slice | None = None,
         env_ids: Sequence[int] | None = None,
     ):
@@ -847,6 +849,8 @@ class Articulation(AssetBase):
         Args:
             forces: External forces in bodies' local frame. Shape is (len(env_ids), len(body_ids), 3).
             torques: External torques in bodies' local frame. Shape is (len(env_ids), len(body_ids), 3).
+            positions: External force and torque application positions in bodies' local frame.
+                Shape is (len(env_ids), len(body_ids), 3). Defaults to None (origin of the body).
             body_ids: Body indices to apply external wrench to. Defaults to None (all bodies).
             env_ids: Environment indices to apply external wrench to. Defaults to None (all instances).
         """
@@ -878,6 +882,8 @@ class Articulation(AssetBase):
         # note: these are applied in the write_to_sim function
         self._external_force_b.flatten(0, 1)[indices] = forces.flatten(0, 1)
         self._external_torque_b.flatten(0, 1)[indices] = torques.flatten(0, 1)
+        if positions is not None:
+            self._external_force_torque_positions.flatten(0, 1)[indices] = positions
 
     def set_joint_position_target(
         self, target: torch.Tensor, joint_ids: Sequence[int] | slice | None = None, env_ids: Sequence[int] | None = None
@@ -1223,6 +1229,7 @@ class Articulation(AssetBase):
         self.has_external_wrench = False
         self._external_force_b = torch.zeros((self.num_instances, self.num_bodies, 3), device=self.device)
         self._external_torque_b = torch.zeros_like(self._external_force_b)
+        self._external_force_torque_positions = torch.zeros_like(self._external_force_b)
 
         # asset named data
         self._data.joint_names = self.joint_names
